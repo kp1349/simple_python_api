@@ -54,3 +54,12 @@ docker push kp1349/simple_python_api:latest
 # find the latest tag here: https://hub.docker.com/repository/docker/kp1349/simple_python_api/general
 ```
 
+## running from dockerhub
+```sh
+# pull
+docker pull kp1349/simple_python_api:latest
+# run
+docker run --rm -p 8000:8000 kp1349/simple_python_api:latest
+# use docker compose with latest tag
+docker compose -f docker-compose.ci.yml up
+```
