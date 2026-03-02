@@ -17,3 +17,14 @@ build_gitlab_image:
     - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" "$CI_REGISTRY_IMAGE:latest"
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
     - docker push "$CI_REGISTRY_IMAGE:latest"
+
+build_dockerhub_image:
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    - docker build -t "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA" .
+    - docker tag "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA" "kp1349/simple_python_api:latest"
+    - docker push "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA"
+    - docker push "kp1349/simple_python_api:latest"
