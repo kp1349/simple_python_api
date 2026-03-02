@@ -37,3 +37,20 @@ docker run --rm -p 8000:8000 registry.gitlab.com/k_paul/simple_python_api:<lates
 # use docker compose with latest tag
 docker compose -f docker-compose.gitlab.yml up
 ```
+
+## pushing to dockerhub
+```sh
+# login
+docker login
+# build
+docker build -t simple-python-api:latest .
+# verify
+docker images
+# tag
+docker tag <local_image_or_existing_tag> kp1349/simple_python_api:latest
+docker tag simple-python-api:latest kp1349/simple_python_api:latest
+# push
+docker push kp1349/simple_python_api:latest
+# find the latest tag here: https://hub.docker.com/repository/docker/kp1349/simple_python_api/general
+```
+
