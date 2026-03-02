@@ -1,5 +1,6 @@
 stages:
   - build
+  - push
 
 image: docker:27
 services:
@@ -7,24 +8,43 @@ services:
 variables:
   DOCKER_TLS_CERTDIR: ""
 
-build_gitlab_image:
+build_image:
   stage: build
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
   script:
+    - docker build -t "simple_python_api:$CI_COMMIT_SHORT_SHA" .
+    - docker save "simple_python_api:$CI_COMMIT_SHORT_SHA" -o "simple_python_api.tar"
+  artifacts:
+    paths:
+      - simple_python_api.tar
+
+push_gitlab_registry:
+  stage: push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: build_image
+      artifacts: true
+  script:
+    - docker load -i simple_python_api.tar
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" .
-    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" "$CI_REGISTRY_IMAGE:latest"
+    - docker tag "simple_python_api:$CI_COMMIT_SHORT_SHA" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+    - docker tag "simple_python_api:$CI_COMMIT_SHORT_SHA" "$CI_REGISTRY_IMAGE:latest"
     - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
     - docker push "$CI_REGISTRY_IMAGE:latest"
 
-build_dockerhub_image:
-  stage: build
+push_dockerhub:
+  stage: push
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: build_image
+      artifacts: true
   script:
+    - docker load -i simple_python_api.tar
     - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    - docker build -t "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA" .
-    - docker tag "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA" "kp1349/simple_python_api:latest"
+    - docker tag "simple_python_api:$CI_COMMIT_SHORT_SHA" "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA"
+    - docker tag "simple_python_api:$CI_COMMIT_SHORT_SHA" "kp1349/simple_python_api:latest"
     - docker push "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA"
     - docker push "kp1349/simple_python_api:latest"
