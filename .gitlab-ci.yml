@@ -1,9 +1,9 @@
 stages:
   - build
 
-image: docker:stable
+image: docker:27
 services:
-  - docker:dind
+  - docker:27-dind
 variables:
   DOCKER_TLS_CERTDIR: ""
 
