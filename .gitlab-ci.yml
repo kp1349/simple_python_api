@@ -40,15 +40,15 @@ integration_tests:
   script:
     - docker load -i simple_python_api.tar
     - apk add --no-cache curl
-    - 'docker run --rm -d -p 18000:8000 --name api-smoke simple_python_api:$CI_COMMIT_SHORT_SHA'
+    - 'docker run --rm -d --name api-smoke simple_python_api:$CI_COMMIT_SHORT_SHA'
     - sleep 5
     - |
       for i in 1 2 3 4 5 6 7 8 9 10; do
-        curl -sf http://127.0.0.1:18000/health && break
+        docker run --rm --network container:api-smoke curlimages/curl:8.5.0 -sf http://127.0.0.1:8000/health && break
         sleep 1
       done
-      curl -f http://127.0.0.1:18000/health
-      curl -f -X POST http://127.0.0.1:18000/hello -H "Content-Type: application/json" -d '{"name":"John"}'
+      docker run --rm --network container:api-smoke curlimages/curl:8.5.0 -f http://127.0.0.1:8000/health
+      docker run --rm --network container:api-smoke curlimages/curl:8.5.0 -f -X POST http://127.0.0.1:8000/hello -H "Content-Type: application/json" -d '{"name":"John"}'
     - docker stop api-smoke
 
 push_gitlab_registry:
