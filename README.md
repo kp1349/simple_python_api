@@ -63,3 +63,11 @@ docker run --rm -p 8000:8000 kp1349/simple_python_api:latest
 # use docker compose with latest tag
 docker compose -f docker-compose.ci.yml up
 ```
+
+# testing
+## unit tests
+```sh
+pip install -r requirements.txt
+pip install -r requirements.dev.txt
+pytest
+```
