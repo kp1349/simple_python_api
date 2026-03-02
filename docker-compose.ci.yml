@@ -1,5 +1,5 @@
 services:
   app:
-    image: registry.gitlab.com/k_paul/simple_python_api:eee57f61
+    image: registry.gitlab.com/k_paul/simple_python_api:latest
     ports:
       - "8000:8000"
