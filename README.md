@@ -26,3 +26,5 @@ http://127.0.0.1:8000/docs
 docker build -t simple-python-api:local .
 docker run --rm -p 8000:8000 --name simple-python-api simple-python-api:local
 ```
+
+Test
