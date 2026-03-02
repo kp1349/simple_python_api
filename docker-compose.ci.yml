@@ -1,5 +1,6 @@
 services:
   app:
-    image: registry.gitlab.com/k_paul/simple_python_api:latest
+    # image: registry.gitlab.com/k_paul/simple_python_api:latest  # dockerhub
+    image: kp1349/simple_python_api:latest  # gitlab
     ports:
       - "8000:8000"
