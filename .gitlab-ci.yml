@@ -3,6 +3,7 @@ stages:
   - build
   - integration
   - push
+  - deploy
 
 image: docker:27
 services:
@@ -76,3 +77,39 @@ push_dockerhub:
     - docker buildx create --use buildx-context || docker buildx use buildx-context
     - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
     - docker buildx build --platform linux/amd64,linux/arm64 -t "kp1349/simple_python_api:$CI_COMMIT_SHORT_SHA" -t "kp1349/simple_python_api:latest" --push .
+
+push_ecr:
+  stage: push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: integration_tests
+  before_script:
+    - apk add --no-cache aws-cli
+    - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com"
+  script:
+    - docker context create buildx-context || true
+    - docker buildx create --use buildx-context || docker buildx use buildx-context
+    - docker buildx build
+      --platform linux/amd64
+      -t "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/simple-python-api:$CI_COMMIT_SHORT_SHA"
+      -t "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/simple-python-api:latest"
+      --push .
+
+deploy_ecs:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs:
+    - job: push_ecr
+  image: python:3.11-slim
+  before_script:
+    - pip install awscli
+  script:
+    - aws ecs update-service
+      --cluster simple-python-api-cluster
+      --service simple-python-api-service
+      --force-new-deployment
+    - aws ecs wait services-stable
+      --cluster simple-python-api-cluster
+      --services simple-python-api-service
